@@ -1,7 +1,7 @@
 # wine-mine
 
-Run:\ 
+Run:
 \
-node screenshot.js https://www.google.com/\
+node screenshot.js https://www.google.com/
 \
 node scrape.js https://www.google.com/ "1999 Chateau D'Issan"\
