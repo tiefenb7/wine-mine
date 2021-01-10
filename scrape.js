@@ -33,14 +33,41 @@ async function searchSiteByKey(page, indexUrl, searchKey) {
           })
         })
       }  
-
-
     INPUT_TYPE_SEARCH = await getData();
     await page.goto(indexUrl);
     await page.focus(INPUT_TYPE_SEARCH);
     await page.keyboard.type(searchKey);
-    await page.waitForTimeout(3000); //not ideal. 
+    await page.waitForTimeout(3000);
     await page.keyboard.press('Enter');
+}
+
+/*
+    After search is initiated, grab all links/hrefs returned
+    Then visit each url and proceed to scrape what is needed.
+*/
+async function processReturnedURLs(page) {
+    const getPageURLs = async() => {
+        return await page.evaluate(async () => {
+            return await new Promise(resolve => {
+                var arr = [], l = document.links;
+                for(var i=0; i<l.length; i++) {
+                    //exclude
+                    if(!l[i].href.includes("google")) {
+                        arr.push(l[i].href);
+                    }
+                }
+                resolve(arr);
+            })
+        }
+    )};
+
+    var pageURLs = await getPageURLs();
+    // Visit each URL and scrape what is needed
+    for(var url = 0; url < pageURLs.length; url++) {
+        console.log("Loading up... " + pageURLs[url]);
+        await page.goto(pageURLs[url]);
+        await page.waitForTimeout(3000);
+    }
 }
 
 async function run (indexUrl, searchKey) {
@@ -51,9 +78,8 @@ async function run (indexUrl, searchKey) {
     // Initiate search based on key
     await searchSiteByKey(page, indexUrl, searchKey);
     await page.waitForNavigation();
+    await processReturnedURLs(page);
 
-    //Take screenshot and close. 
-    await page.screenshot({path: './screenshots/screenshot.png'});
     browser.close();
     return 1;
 }
